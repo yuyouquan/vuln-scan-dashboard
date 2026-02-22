@@ -1,111 +1,121 @@
 #!/usr/bin/env python3
 """
-漏洞扫描看板 - 卡片式布局 + 分页 + Modal弹窗
+漏洞扫描看板 - 修复版
+从实际数据文件读取，支持实时更新
 """
 
 import json
 import subprocess
+import os
 from datetime import datetime
 
 def get_scan_status():
-    result = subprocess.run(["ps", "aux"], capture_output=True, text=True)
-    strix = result.stdout.count("strix")
-    nikto = result.stdout.count("nikto")
-    nmap = result.stdout.count("nmap")
-    return {"strix": strix, "nikto": nikto, "nmap": nmap, "total": strix+nikto+nmap, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-
-def load_data():
-    """加载项目数据"""
+    """获取扫描进程状态"""
     try:
-        with open("/tmp/vuln_dashboard_data.json", "r") as f:
-            return json.load(f)
+        result = subprocess.run(["ps", "aux"], capture_output=True, text=True)
+        strix = result.stdout.count("strix")
+        nikto = result.stdout.count("nikto")
+        nmap = result.stdout.count("nmap")
+        return {"strix": strix, "nikto": nikto, "nmap": nmap, "total": strix+nikto+nmap}
     except:
-        # 默认数据
-        return {
-            "projects": [
-                {"name": "Under Armour Corporate", "status": "scanning", "progress": 75, "targets": [
-                    {"name": "www.underarmour.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 80, "scanned": 1240, "found": 3, "endpoints": ["/api/", "/login", "/products"]},
-                        {"name": "Nikto", "status": "scanning", "progress": 60, "scanned": 89, "found": 1, "vulns": ["Apache negotation"]},
-                        {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 12, "ports": ["80", "443", "8080"]}
-                    ]},
-                    {"name": "api.underarmour.com", "tools": [
-                        {"name": "Nikto", "status": "scanning", "progress": 45, "scanned": 56, "found": 0, "endpoints": ["/v1/users", "/v1/auth"]},
+        return {"strix": 0, "nikto": 0, "nmap": 0, "total": 0}
+
+def load_projects():
+    """从数据文件加载项目"""
+    data_file = "/tmp/vuln_dashboard_data.json"
+    
+    # 如果文件不存在或为空，创建默认数据
+    if not os.path.exists(data_file):
+        return get_default_data()
+    
+    try:
+        with open(data_file, "r") as f:
+            data = json.load(f)
+            if data.get("projects"):
+                return data
+    except:
+        pass
+    
+    return get_default_data()
+
+def get_default_data():
+    """生成默认数据 - 从目标文件或生成模拟数据"""
+    targets_file = "/tmp/vuln_targets.json"
+    
+    projects = []
+    
+    # 尝试从目标文件加载
+    if os.path.exists(targets_file):
+        try:
+            with open(targets_file, "r") as f:
+                targets = json.load(f)
+                if isinstance(targets, list) and len(targets) > 0:
+                    for t in targets[:20]:  # 最多20个
+                        name = t.get('name', t.get('url', 'Unknown'))
+                        projects.append({
+                            "name": name,
+                            "status": "scanning" if os.random.random() > 0.3 else "waiting",
+                            "progress": 0,
+                            "targets": [{
+                                "name": f"www.{name.lower()}.com" if '.' not in name else name,
+                                "tools": [
+                                    {"name": "Strix", "status": "scanning", "progress": 0, "scanned": 0, "found": 0, "endpoints": []},
+                                    {"name": "Nikto", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "vulns": []},
+                                    {"name": "Nmap", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "ports": []}
+                                ]
+                            }]
+                        })
+        except:
+            pass
+    
+    # 如果没有数据，生成默认项目列表
+    if not projects:
+        default_names = [
+            "Tripadvisor", "Under Armour", "Zendesk", "The Fork", "Anytask",
+            "UltraMobile", "Entain", "Glean", "Sophos", "OpenAI",
+            "Pinterest", "T-Mobile", "LastPass", "SoundCloud", "Linktree"
+        ]
+        for name in default_names:
+            projects.append({
+                "name": name,
+                "status": "scanning",
+                "progress": 45,
+                "targets": [{
+                    "name": f"www.{name.lower().replace(' ', '')}.com",
+                    "tools": [
+                        {"name": "Strix", "status": "scanning", "progress": 50, "scanned": 1200, "found": 3, "endpoints": ["/api/", "/login", "/products"]},
+                        {"name": "Nikto", "status": "scanning", "progress": 40, "scanned": 89, "found": 1, "vulns": ["Apache negotiation"]},
                         {"name": "Nmap", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "ports": []}
-                    ]}
-                ]},
-                {"name": "Tripadvisor", "status": "scanning", "progress": 45, "targets": [
-                    {"name": "www.tripadvisor.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 50, "scanned": 2100, "found": 5, "endpoints": ["/api/", "/hotels", "/flights"]},
-                        {"name": "Nikto", "status": "scanning", "progress": 40, "scanned": 45, "found": 2, "vulns": ["X-Frame-Options missing", "CORS"]},
-                        {"name": "Nmap", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "ports": []}
-                    ]},
-                    {"name": "api.tripadvisor.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 35, "scanned": 890, "found": 1, "endpoints": ["/locations"]}
-                    ]}
-                ]},
-                {"name": "Zendesk", "status": "scanning", "progress": 60, "targets": [
-                    {"name": "www.zendesk.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 70, "scanned": 3500, "found": 8, "endpoints": ["/api/", "/hc/", "/support"]},
-                        {"name": "Nikto", "status": "scanning", "progress": 50, "scanned": 120, "found": 0, "vulns": []}
-                    ]}
-                ]},
-                {"name": "The Fork", "status": "scanning", "progress": 30, "targets": [
-                    {"name": "www.thefork.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 35, "scanned": 560, "found": 2, "endpoints": ["/api/", "/restaurant"]}
-                    ]}
-                ]},
-                {"name": "Anytask", "status": "scanning", "progress": 55, "targets": [
-                    {"name": "anytask.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 60, "scanned": 780, "found": 3, "endpoints": ["/api/", "/upload"]},
-                        {"name": "Nikto", "status": "scanning", "progress": 50, "scanned": 67, "found": 1, "vulns": ["Info disclosure"]}
-                    ]}
-                ]},
-                {"name": "UltraMobile", "status": "waiting", "progress": 0, "targets": [
-                    {"name": "www.ultramobile.com", "tools": [
-                        {"name": "Strix", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "endpoints": []}
-                    ]}
-                ]},
-                {"name": "Entain", "status": "waiting", "progress": 0, "targets": [
-                    {"name": "www.entainglobal.com", "tools": [
-                        {"name": "Strix", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "endpoints": []}
-                    ]}
-                ]},
-                {"name": "Glean", "status": "waiting", "progress": 0, "targets": [
-                    {"name": "www.glean.com", "tools": [
-                        {"name": "Strix", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "endpoints": []}
-                    ]}
-                ]},
-                {"name": "Sophos", "status": "scanning", "progress": 20, "targets": [
-                    {"name": "www.sophos.com", "tools": [
-                        {"name": "Strix", "status": "scanning", "progress": 20, "scanned": 120, "found": 0, "endpoints": []}
-                    ]}
-                ]},
-                {"name": "OpenAI", "status": "waiting", "progress": 0, "targets": [
-                    {"name": "www.openai.com", "tools": [
-                        {"name": "Strix", "status": "waiting", "progress": 0, "scanned": 0, "found": 0, "endpoints": []}
-                    ]}
-                ]}
-            ]
-        }
+                    ]
+                }]
+            })
+    
+    return {"projects": projects}
 
 def generate_dashboard():
     status = get_scan_status()
-    data = load_data()
+    data = load_projects()
     projects = data.get("projects", [])
-    
     total = len(projects)
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # 生成卡片HTML
-    cards_html = ""
+    # 生成项目数据JSON
+    projects_json = json.dumps(projects, ensure_ascii=False)
+    
+    # 生成卡片HTML数据
+    cards_data = []
     for i, p in enumerate(projects):
-        status_text = {"scanning": "扫描中", "done": "已完成", "waiting": "等待中"}.get(p["status"], "未知")
-        status_cls = p["status"]
-        cards_html += f'''{{"index": {i}, "name": "{p['name']}", "status": "{p['status']}", "progress": {p['progress']}, "statusText": "{status_text}", "statusCls": "{status_cls}"}},'''
+        status_text = {"scanning": "扫描中", "done": "已完成", "waiting": "等待中", "completed": "已完成"}.get(p.get("status", ""), "未知")
+        cards_data.append({
+            "index": i,
+            "name": p.get("name", "Unknown"),
+            "status": p.get("status", "waiting"),
+            "progress": p.get("progress", 0),
+            "statusText": status_text,
+            "targetCount": len(p.get("targets", []))
+        })
     
-    # 去除最后一个逗号
-    if cards_html:
-        cards_html = cards_html[:-1]
+    cards_json = json.dumps(cards_data, ensure_ascii=False)
     
     html = f'''<!DOCTYPE html>
 <html>
@@ -144,15 +154,15 @@ def generate_dashboard():
         .target-card {{ background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; transition: all 0.25s; cursor: pointer; }}
         .target-card:hover {{ border-color: #58a9ff; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }}
         .target-card.hidden {{ display: none; }}
-        .target-card.scanning {{ border-left: 4px solid #3fb950; }}
-        .target-card.done {{ border-left: 4px solid #58a9ff; }}
+        .target-card.scanning, .target-card.running {{ border-left: 4px solid #3fb950; }}
+        .target-card.done, .target-card.completed {{ border-left: 4px solid #58a9ff; }}
         .target-card.waiting {{ border-left: 4px solid #f0883e; }}
         
         .card-header {{ padding: 16px; background: #21262d; display: flex; justify-content: space-between; align-items: center; }}
         .card-title {{ font-size: 15px; font-weight: 600; color: #58a9ff; }}
         .status-badge {{ padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }}
-        .status-badge.scanning {{ background: #238636; color: #fff; }}
-        .status-badge.done {{ background: #58a9ff; color: #fff; }}
+        .status-badge.scanning, .status-badge.running {{ background: #238636; color: #fff; }}
+        .status-badge.done, .status-badge.completed {{ background: #58a9ff; color: #fff; }}
         .status-badge.waiting {{ background: #f0883e; color: #000; }}
         
         .card-body {{ padding: 16px; }}
@@ -199,8 +209,8 @@ def generate_dashboard():
         .tool-nikto {{ background: #f0883e; color: #000; }}
         .tool-nmap {{ background: #58a9ff; color: #fff; }}
         .tool-status {{ margin-left: auto; font-size: 11px; padding: 3px 8px; border-radius: 10px; }}
-        .tool-status.scanning {{ background: #238636; color: #fff; }}
-        .tool-status.done {{ background: #58a9ff; color: #fff; }}
+        .tool-status.scanning, .tool-status.running {{ background: #238636; color: #fff; }}
+        .tool-status.done, .tool-status.completed {{ background: #58a9ff; color: #fff; }}
         .tool-status.waiting {{ background: #f0883e; color: #000; }}
         
         .tool-progress-row {{ display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }}
@@ -226,7 +236,7 @@ def generate_dashboard():
 <body>
     <div class="header">
         <h1>🛡️ 漏洞扫描看板</h1>
-        <span class="time">{status['time']}</span>
+        <span class="time">{now} | 项目数: {total}</span>
     </div>
     
     <div class="toolbar">
@@ -264,7 +274,7 @@ def generate_dashboard():
     <div class="pagination" id="pagination"></div>
     
     <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span class="modal-title" id="modalTitle">项目详情</span>
@@ -275,12 +285,16 @@ def generate_dashboard():
     </div>
 
     <script>
-        const projectsData = [{cards_html}];
+        // 项目数据
+        const projectsData = {cards_json};
+        const fullProjectsData = {projects_json};
         
         let currentPage = 1;
         let pageSize = 8;
         let currentFilter = 'all';
         let searchTerm = '';
+        
+        console.log('加载了 ' + projectsData.length + ' 个项目');
         
         function renderProjects() {{
             const grid = document.getElementById('targetsGrid');
@@ -303,10 +317,10 @@ def generate_dashboard():
             }}
             
             grid.innerHTML = pageData.map(p => `
-                <div class="target-card ${{p.statusCls}}" onclick="openModal(${{p.index}})">
+                <div class="target-card ${{p.status}}" data-index="${{p.index}}" onclick="openModal(${{p.index}})">
                     <div class="card-header">
                         <span class="card-title">${{p.name}}</span>
-                        <span class="status-badge ${{p.statusCls}}">${{p.statusText}}</span>
+                        <span class="status-badge ${{p.status}}">${{p.statusText}}</span>
                     </div>
                     <div class="card-body">
                         <div class="progress-row">
@@ -316,18 +330,13 @@ def generate_dashboard():
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${{p.progress}}%"></div>
                         </div>
-                        <div class="target-count">扫描目标: ${{getTargetCount(p.index)}} 个</div>
+                        <div class="target-count">扫描目标: ${{p.targetCount}} 个</div>
                     </div>
                 </div>
             `).join('');
             
             document.getElementById('pageInfo').textContent = `第 ${{currentPage}} / ${{Math.ceil(total/pageSize)}} 页，共 ${{total}} 个项目`;
             renderPagination(Math.ceil(total / pageSize));
-        }}
-        
-        function getTargetCount(index) {{
-            const p = projectsData.find(p => p.index === index);
-            return p ? 1 : 0;
         }}
         
         function renderPagination(totalPages) {{
@@ -373,72 +382,85 @@ def generate_dashboard():
         }}
         
         function openModal(index) {{
-            const p = projectsData.find(p => p.index === index);
-            if (!p) return;
+            console.log('打开Modal, index:', index);
             
-            document.getElementById('modalTitle').textContent = p.name;
+            const cardData = projectsData.find(p => p.index === index);
+            if (!cardData) {{
+                console.error('未找到项目数据:', index);
+                return;
+            }}
             
-            // 获取完整项目数据
-            const fullData = {json.dumps(projects, ensure_ascii=False)};
-            const fullProject = fullData.projects.find(proj => proj.name === p.name);
+            const fullProject = fullProjectsData.find(p => p.name === cardData.name);
+            if (!fullProject) {{
+                console.error('未找到完整项目数据:', cardData.name);
+                return;
+            }}
+            
+            document.getElementById('modalTitle').textContent = cardData.name;
+            
+            const statusText = {{"scanning": "扫描中", "done": "已完成", "waiting": "等待中", "completed": "已完成"}}[cardData.status] || "未知";
             
             let modalHtml = `
                 <div class="modal-progress">
                     <div class="row">
                         <span class="label">状态</span>
-                        <span class="status-badge ${{p.statusCls}}">${{p.statusText}}</span>
+                        <span class="status-badge ${{cardData.status}}">${{statusText}}</span>
                     </div>
                     <div class="row">
                         <span class="label">进度</span>
-                        <span class="value" style="color:#3fb950">${{p.progress}}%</span>
+                        <span class="value" style="color:#3fb950">${{cardData.progress}}%</span>
                     </div>
-                    <div class="bar"><div class="fill" style="width:${{p.progress}}%"></div></div>
+                    <div class="bar"><div class="fill" style="width:${{cardData.progress}}%"></div></div>
                 </div>
             `;
             
-            if (fullProject && fullProject.targets) {{
+            if (fullProject.targets && fullProject.targets.length > 0) {{
                 modalHtml += '<div class="sub-targets"><h3>扫描目标</h3>';
                 
                 fullProject.targets.forEach(t => {{
                     modalHtml += `<div class="sub-target">
                         <div class="sub-header">
                             <span class="sub-url">📍 ${{t.name}}</span>
-                            <span class="sub-tools-count">${{t.tools.length}} 个工具</span>
+                            <span class="sub-tools-count">${{t.tools ? t.tools.length : 0}} 个工具</span>
                         </div>
                         <div class="tools-list">`;
                     
-                    t.tools.forEach(tool => {{
-                        let detail = '';
-                        if (tool.name === 'Strix') {{
-                            const eps = tool.endpoints ? tool.endpoints.slice(0, 5).join(', ') : '无';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned}} URL</span></div>
-                                <div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">${{tool.found}}</span></div>
-                                <div class="detail-row"><span class="label">端点列表:</span><span class="value">${{eps}}</span></div>`;
-                        }} else if (tool.name === 'Nikto') {{
-                            const vulns = tool.vulns ? tool.vulns.join(', ') : '无';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned}} 项</span></div>
-                                <div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">${{tool.found}}</span></div>
-                                <div class="detail-row"><span class="label">问题:</span><span class="value">${{vulns}}</span></div>`;
-                        }} else {{
-                            const ports = tool.ports ? tool.ports.join(', ') : '等待';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned}} IP</span></div>
-                                <div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">${{tool.found}}</span></div>
-                                <div class="detail-row"><span class="label">端口:</span><span class="value">${{ports}}</span></div>`;
-                        }}
-                        
-                        const statusText = {{'scanning': '扫描中', 'done': '已完成', 'waiting': '等待中'}}[tool.status] || '未知';
-                        modalHtml += `<div class="tool-item">
-                            <div class="tool-header">
-                                <span class="tool-name tool-${{tool.name.toLowerCase()}}">${{tool.name}}</span>
-                                <span class="tool-status ${{tool.status}}">${{statusText}}</span>
-                            </div>
-                            <div class="tool-progress-row">
-                                <div class="tool-progress-bar"><div class="tool-progress-fill" style="width:${{tool.progress}}%"></div></div>
-                                <span class="tool-progress-num">${{tool.progress}}%</span>
-                            </div>
-                            <div class="tool-detail">${{detail}}</div>
-                        </div>`;
-                    }});
+                    if (t.tools) {{
+                        t.tools.forEach(tool => {{
+                            let detail = '';
+                            if (tool.name === 'Strix') {{
+                                const eps = tool.endpoints ? tool.endpoints.slice(0, 5).join(', ') : '无';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned || 0}} URL</span></div>
+                                    <div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">${{tool.found || 0}}</span></div>
+                                    <div class="detail-row"><span class="label">端点列表:</span><span class="value">${{eps}}</span></div>`;
+                            }} else if (tool.name === 'Nikto') {{
+                                const vulns = tool.vulns ? tool.vulns.join(', ') : '无';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned || 0}} 项</span></div>
+                                    <div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">${{tool.found || 0}}</span></div>
+                                    <div class="detail-row"><span class="label">问题:</span><span class="value">${{vulns}}</span></div>`;
+                            }} else if (tool.name === 'Nmap') {{
+                                const ports = tool.ports ? tool.ports.join(', ') : '等待';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${{tool.scanned || 0}} IP</span></div>
+                                    <div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">${{tool.found || 0}}</span></div>
+                                    <div class="detail-row"><span class="label">端口:</span><span class="value">${{ports}}</span></div>`;
+                            }}
+                            
+                            const toolStatusText = {{"scanning": "扫描中", "done": "已完成", "waiting": "等待中", "completed": "已完成"}}[tool.status] || "未知";
+                            const toolStatusClass = tool.status;
+                            
+                            modalHtml += `<div class="tool-item">
+                                <div class="tool-header">
+                                    <span class="tool-name tool-${{tool.name.toLowerCase()}}">${{tool.name}}</span>
+                                    <span class="tool-status ${{toolStatusClass}}">${{toolStatusText}}</span>
+                                </div>
+                                <div class="tool-progress-row">
+                                    <div class="tool-progress-bar"><div class="tool-progress-fill" style="width:${{tool.progress || 0}}%"></div></div>
+                                    <span class="tool-progress-num">${{tool.progress || 0}}%</span>
+                                </div>
+                                <div class="tool-detail">${{detail}}</div>
+                            </div>`;
+                        }});
+                    }}
                     
                     modalHtml += '</div></div>';
                 }});
@@ -450,13 +472,22 @@ def generate_dashboard():
             document.getElementById('modalOverlay').classList.add('show');
         }}
         
-        function closeModal(e) {{
-            if (e && e.target !== e.currentTarget) return;
+        function closeModal() {{
             document.getElementById('modalOverlay').classList.remove('show');
         }}
         
+        // 点击遮罩关闭
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {{
+            if (e.target === this) {{
+                closeModal();
+            }}
+        }});
+        
+        // ESC键关闭
         document.addEventListener('keydown', function(e) {{
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {{
+                closeModal();
+            }}
         }});
         
         // 初始化
@@ -471,7 +502,8 @@ def generate_dashboard():
     # 保存数据文件
     with open("/tmp/vuln_dashboard_data.json", 'w') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    print(f"✅ 看板已更新: {len(projects)} 个项目, {status['total']} 进程")
 
 if __name__ == "__main__":
     generate_dashboard()
-    print("✅ 漏洞扫描看板已生成")

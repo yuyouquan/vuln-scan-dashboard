@@ -35,15 +35,15 @@
         .target-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; transition: all 0.25s; cursor: pointer; }
         .target-card:hover { border-color: #58a9ff; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
         .target-card.hidden { display: none; }
-        .target-card.scanning { border-left: 4px solid #3fb950; }
-        .target-card.done { border-left: 4px solid #58a9ff; }
+        .target-card.scanning, .target-card.running { border-left: 4px solid #3fb950; }
+        .target-card.done, .target-card.completed { border-left: 4px solid #58a9ff; }
         .target-card.waiting { border-left: 4px solid #f0883e; }
         
         .card-header { padding: 16px; background: #21262d; display: flex; justify-content: space-between; align-items: center; }
         .card-title { font-size: 15px; font-weight: 600; color: #58a9ff; }
         .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
-        .status-badge.scanning { background: #238636; color: #fff; }
-        .status-badge.done { background: #58a9ff; color: #fff; }
+        .status-badge.scanning, .status-badge.running { background: #238636; color: #fff; }
+        .status-badge.done, .status-badge.completed { background: #58a9ff; color: #fff; }
         .status-badge.waiting { background: #f0883e; color: #000; }
         
         .card-body { padding: 16px; }
@@ -90,8 +90,8 @@
         .tool-nikto { background: #f0883e; color: #000; }
         .tool-nmap { background: #58a9ff; color: #fff; }
         .tool-status { margin-left: auto; font-size: 11px; padding: 3px 8px; border-radius: 10px; }
-        .tool-status.scanning { background: #238636; color: #fff; }
-        .tool-status.done { background: #58a9ff; color: #fff; }
+        .tool-status.scanning, .tool-status.running { background: #238636; color: #fff; }
+        .tool-status.done, .tool-status.completed { background: #58a9ff; color: #fff; }
         .tool-status.waiting { background: #f0883e; color: #000; }
         
         .tool-progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -117,7 +117,7 @@
 <body>
     <div class="header">
         <h1>🛡️ 漏洞扫描看板</h1>
-        <span class="time">2026-02-22 10:43:40</span>
+        <span class="time">2026-02-22 11:48:17 | 项目数: 30</span>
     </div>
     
     <div class="toolbar">
@@ -140,7 +140,7 @@
     </div>
     
     <div class="pagination-bar">
-        <span class="page-info" id="pageInfo">共 1 个项目</span>
+        <span class="page-info" id="pageInfo">共 30 个项目</span>
         <div class="page-size">
             每页显示: <select id="pageSize" onchange="changePageSize()">
                 <option value="8" selected>8 条</option>
@@ -155,7 +155,7 @@
     <div class="pagination" id="pagination"></div>
     
     <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span class="modal-title" id="modalTitle">项目详情</span>
@@ -166,12 +166,16 @@
     </div>
 
     <script>
-        const projectsData = [{"index": 0, "name": "Tripadvisor", "status": "scanning", "progress": 63, "statusText": "扫描中", "statusCls": "scanning"}];
+        // 项目数据
+        const projectsData = [{"index": 0, "name": "Tripadvisor", "status": "scanning", "progress": 10, "statusText": "扫描中", "targetCount": 1}, {"index": 1, "name": "Under Armour", "status": "scanning", "progress": 13, "statusText": "扫描中", "targetCount": 1}, {"index": 2, "name": "Zendesk", "status": "scanning", "progress": 16, "statusText": "扫描中", "targetCount": 1}, {"index": 3, "name": "The Fork", "status": "scanning", "progress": 19, "statusText": "扫描中", "targetCount": 1}, {"index": 4, "name": "Anytask", "status": "scanning", "progress": 22, "statusText": "扫描中", "targetCount": 1}, {"index": 5, "name": "UltraMobile", "status": "scanning", "progress": 25, "statusText": "扫描中", "targetCount": 1}, {"index": 6, "name": "Entain", "status": "scanning", "progress": 28, "statusText": "扫描中", "targetCount": 1}, {"index": 7, "name": "Glean", "status": "scanning", "progress": 31, "statusText": "扫描中", "targetCount": 1}, {"index": 8, "name": "Sophos", "status": "scanning", "progress": 34, "statusText": "扫描中", "targetCount": 1}, {"index": 9, "name": "OpenAI", "status": "scanning", "progress": 37, "statusText": "扫描中", "targetCount": 1}, {"index": 10, "name": "Pinterest", "status": "scanning", "progress": 40, "statusText": "扫描中", "targetCount": 1}, {"index": 11, "name": "T-Mobile", "status": "scanning", "progress": 43, "statusText": "扫描中", "targetCount": 1}, {"index": 12, "name": "LastPass", "status": "scanning", "progress": 46, "statusText": "扫描中", "targetCount": 1}, {"index": 13, "name": "SoundCloud", "status": "scanning", "progress": 49, "statusText": "扫描中", "targetCount": 1}, {"index": 14, "name": "Linktree", "status": "scanning", "progress": 52, "statusText": "扫描中", "targetCount": 1}, {"index": 15, "name": "Skyscanner", "status": "scanning", "progress": 55, "statusText": "扫描中", "targetCount": 1}, {"index": 16, "name": "CoinDesk", "status": "scanning", "progress": 58, "statusText": "扫描中", "targetCount": 1}, {"index": 17, "name": "HPE Aruba", "status": "scanning", "progress": 61, "statusText": "扫描中", "targetCount": 1}, {"index": 18, "name": "Seek", "status": "scanning", "progress": 64, "statusText": "扫描中", "targetCount": 1}, {"index": 19, "name": "Sendbird", "status": "scanning", "progress": 67, "statusText": "扫描中", "targetCount": 1}, {"index": 20, "name": "Quizlet", "status": "waiting", "progress": 70, "statusText": "等待中", "targetCount": 1}, {"index": 21, "name": "Origin Energy", "status": "waiting", "progress": 73, "statusText": "等待中", "targetCount": 1}, {"index": 22, "name": "eazyBI", "status": "waiting", "progress": 76, "statusText": "等待中", "targetCount": 1}, {"index": 23, "name": "The Hut Group", "status": "waiting", "progress": 79, "statusText": "等待中", "targetCount": 1}, {"index": 24, "name": "Flourish", "status": "waiting", "progress": 82, "statusText": "等待中", "targetCount": 1}, {"index": 25, "name": "Personal Capital", "status": "waiting", "progress": 85, "statusText": "等待中", "targetCount": 1}, {"index": 26, "name": "Kiteworks", "status": "waiting", "progress": 88, "statusText": "等待中", "targetCount": 1}, {"index": 27, "name": "CoinDesk Mobile", "status": "waiting", "progress": 11, "statusText": "等待中", "targetCount": 1}, {"index": 28, "name": "Xfinity", "status": "waiting", "progress": 14, "statusText": "等待中", "targetCount": 1}, {"index": 29, "name": "Backblaze", "status": "waiting", "progress": 17, "statusText": "等待中", "targetCount": 1}];
+        const fullProjectsData = [{"name": "Tripadvisor", "status": "scanning", "progress": 10, "targets": [{"name": "www.tripadvisor.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 10, "scanned": 100, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 5, "scanned": 50, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 3, "ports": ["80", "443"]}]}]}, {"name": "Under Armour", "status": "scanning", "progress": 13, "targets": [{"name": "www.underarmour.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 13, "scanned": 150, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 7, "scanned": 70, "found": 1, "vulns": []}, {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 4, "ports": ["80", "443"]}]}]}, {"name": "Zendesk", "status": "scanning", "progress": 16, "targets": [{"name": "www.zendesk.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 16, "scanned": 200, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 9, "scanned": 90, "found": 2, "vulns": []}, {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 5, "ports": ["80", "443"]}]}]}, {"name": "The Fork", "status": "scanning", "progress": 19, "targets": [{"name": "www.thefork.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 19, "scanned": 250, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 11, "scanned": 110, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 6, "ports": ["80", "443"]}]}]}, {"name": "Anytask", "status": "scanning", "progress": 22, "targets": [{"name": "www.anytask.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 22, "scanned": 300, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 13, "scanned": 130, "found": 1, "vulns": []}, {"name": "Nmap", "status": "done", "progress": 100, "scanned": 1000, "found": 7, "ports": ["80", "443"]}]}]}, {"name": "UltraMobile", "status": "scanning", "progress": 25, "targets": [{"name": "www.ultramobile.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 25, "scanned": 350, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 15, "scanned": 150, "found": 2, "vulns": []}, {"name": "Nmap", "status": "scanning", "progress": 55, "scanned": 1000, "found": 8, "ports": ["80", "443"]}]}]}, {"name": "Entain", "status": "scanning", "progress": 28, "targets": [{"name": "www.entain.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 28, "scanned": 400, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 17, "scanned": 170, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "scanning", "progress": 60, "scanned": 1000, "found": 9, "ports": ["80", "443"]}]}]}, {"name": "Glean", "status": "scanning", "progress": 31, "targets": [{"name": "www.glean.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 31, "scanned": 450, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 19, "scanned": 190, "found": 1, "vulns": []}, {"name": "Nmap", "status": "scanning", "progress": 65, "scanned": 1000, "found": 10, "ports": ["80", "443"]}]}]}, {"name": "Sophos", "status": "scanning", "progress": 34, "targets": [{"name": "www.sophos.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 34, "scanned": 500, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 21, "scanned": 210, "found": 2, "vulns": []}, {"name": "Nmap", "status": "scanning", "progress": 70, "scanned": 1000, "found": 3, "ports": ["80", "443"]}]}]}, {"name": "OpenAI", "status": "scanning", "progress": 37, "targets": [{"name": "www.openai.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 37, "scanned": 550, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 23, "scanned": 230, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "scanning", "progress": 75, "scanned": 1000, "found": 4, "ports": ["80", "443"]}]}]}, {"name": "Pinterest", "status": "scanning", "progress": 40, "targets": [{"name": "www.pinterest.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 40, "scanned": 600, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 25, "scanned": 250, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 80, "scanned": 1000, "found": 5, "ports": ["80", "443"]}]}]}, {"name": "T-Mobile", "status": "scanning", "progress": 43, "targets": [{"name": "www.t-mobile.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 43, "scanned": 650, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 27, "scanned": 270, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 85, "scanned": 1000, "found": 6, "ports": ["80", "443"]}]}]}, {"name": "LastPass", "status": "scanning", "progress": 46, "targets": [{"name": "www.lastpass.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 46, "scanned": 700, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 29, "scanned": 290, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 90, "scanned": 1000, "found": 7, "ports": ["80", "443"]}]}]}, {"name": "SoundCloud", "status": "scanning", "progress": 49, "targets": [{"name": "www.soundcloud.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 49, "scanned": 750, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 31, "scanned": 310, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 95, "scanned": 1000, "found": 8, "ports": ["80", "443"]}]}]}, {"name": "Linktree", "status": "scanning", "progress": 52, "targets": [{"name": "www.linktree.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 52, "scanned": 800, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "scanning", "progress": 33, "scanned": 330, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 100, "scanned": 1000, "found": 9, "ports": ["80", "443"]}]}]}, {"name": "Skyscanner", "status": "scanning", "progress": 55, "targets": [{"name": "www.skyscanner.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 55, "scanned": 850, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 35, "scanned": 350, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 105, "scanned": 1000, "found": 10, "ports": ["80", "443"]}]}]}, {"name": "CoinDesk", "status": "scanning", "progress": 58, "targets": [{"name": "www.coindesk.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 58, "scanned": 900, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 37, "scanned": 370, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 110, "scanned": 1000, "found": 3, "ports": ["80", "443"]}]}]}, {"name": "HPE Aruba", "status": "scanning", "progress": 61, "targets": [{"name": "www.hpearuba.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 61, "scanned": 950, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 39, "scanned": 390, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 115, "scanned": 1000, "found": 4, "ports": ["80", "443"]}]}]}, {"name": "Seek", "status": "scanning", "progress": 64, "targets": [{"name": "www.seek.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 64, "scanned": 1000, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 41, "scanned": 410, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 120, "scanned": 1000, "found": 5, "ports": ["80", "443"]}]}]}, {"name": "Sendbird", "status": "scanning", "progress": 67, "targets": [{"name": "www.sendbird.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 67, "scanned": 1050, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 43, "scanned": 430, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 125, "scanned": 1000, "found": 6, "ports": ["80", "443"]}]}]}, {"name": "Quizlet", "status": "waiting", "progress": 70, "targets": [{"name": "www.quizlet.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 70, "scanned": 1100, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 45, "scanned": 450, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 130, "scanned": 1000, "found": 7, "ports": ["80", "443"]}]}]}, {"name": "Origin Energy", "status": "waiting", "progress": 73, "targets": [{"name": "www.originenergy.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 73, "scanned": 1150, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 47, "scanned": 470, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 135, "scanned": 1000, "found": 8, "ports": ["80", "443"]}]}]}, {"name": "eazyBI", "status": "waiting", "progress": 76, "targets": [{"name": "www.eazybi.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 76, "scanned": 1200, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 49, "scanned": 490, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 140, "scanned": 1000, "found": 9, "ports": ["80", "443"]}]}]}, {"name": "The Hut Group", "status": "waiting", "progress": 79, "targets": [{"name": "www.thehutgroup.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 79, "scanned": 1250, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 51, "scanned": 510, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 145, "scanned": 1000, "found": 10, "ports": ["80", "443"]}]}]}, {"name": "Flourish", "status": "waiting", "progress": 82, "targets": [{"name": "www.flourish.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 82, "scanned": 1300, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 53, "scanned": 530, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 150, "scanned": 1000, "found": 3, "ports": ["80", "443"]}]}]}, {"name": "Personal Capital", "status": "waiting", "progress": 85, "targets": [{"name": "www.personalcapital.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 85, "scanned": 1350, "found": 0, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 55, "scanned": 550, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 155, "scanned": 1000, "found": 4, "ports": ["80", "443"]}]}]}, {"name": "Kiteworks", "status": "waiting", "progress": 88, "targets": [{"name": "www.kiteworks.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 88, "scanned": 1400, "found": 1, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 57, "scanned": 570, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 160, "scanned": 1000, "found": 5, "ports": ["80", "443"]}]}]}, {"name": "CoinDesk Mobile", "status": "waiting", "progress": 11, "targets": [{"name": "www.coindeskmobile.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 11, "scanned": 1450, "found": 2, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 59, "scanned": 590, "found": 0, "vulns": ["Apache negotiation"]}, {"name": "Nmap", "status": "waiting", "progress": 165, "scanned": 1000, "found": 6, "ports": ["80", "443"]}]}]}, {"name": "Xfinity", "status": "waiting", "progress": 14, "targets": [{"name": "www.xfinity.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 14, "scanned": 1500, "found": 3, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 61, "scanned": 610, "found": 1, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 170, "scanned": 1000, "found": 7, "ports": ["80", "443"]}]}]}, {"name": "Backblaze", "status": "waiting", "progress": 17, "targets": [{"name": "www.backblaze.com", "tools": [{"name": "Strix", "status": "waiting", "progress": 17, "scanned": 1550, "found": 4, "endpoints": ["/api/", "/login", "/products"]}, {"name": "Nikto", "status": "waiting", "progress": 63, "scanned": 630, "found": 2, "vulns": []}, {"name": "Nmap", "status": "waiting", "progress": 175, "scanned": 1000, "found": 8, "ports": ["80", "443"]}]}]}];
         
         let currentPage = 1;
         let pageSize = 8;
         let currentFilter = 'all';
         let searchTerm = '';
+        
+        console.log('加载了 ' + projectsData.length + ' 个项目');
         
         function renderProjects() {
             const grid = document.getElementById('targetsGrid');
@@ -194,10 +198,10 @@
             }
             
             grid.innerHTML = pageData.map(p => `
-                <div class="target-card ${p.statusCls}" onclick="openModal(${p.index})">
+                <div class="target-card ${p.status}" data-index="${p.index}" onclick="openModal(${p.index})">
                     <div class="card-header">
                         <span class="card-title">${p.name}</span>
-                        <span class="status-badge ${p.statusCls}">${p.statusText}</span>
+                        <span class="status-badge ${p.status}">${p.statusText}</span>
                     </div>
                     <div class="card-body">
                         <div class="progress-row">
@@ -207,18 +211,13 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${p.progress}%"></div>
                         </div>
-                        <div class="target-count">扫描目标: ${getTargetCount(p.index)} 个</div>
+                        <div class="target-count">扫描目标: ${p.targetCount} 个</div>
                     </div>
                 </div>
             `).join('');
             
             document.getElementById('pageInfo').textContent = `第 ${currentPage} / ${Math.ceil(total/pageSize)} 页，共 ${total} 个项目`;
             renderPagination(Math.ceil(total / pageSize));
-        }
-        
-        function getTargetCount(index) {
-            const p = projectsData.find(p => p.index === index);
-            return p ? 1 : 0;
         }
         
         function renderPagination(totalPages) {
@@ -264,72 +263,85 @@
         }
         
         function openModal(index) {
-            const p = projectsData.find(p => p.index === index);
-            if (!p) return;
+            console.log('打开Modal, index:', index);
             
-            document.getElementById('modalTitle').textContent = p.name;
+            const cardData = projectsData.find(p => p.index === index);
+            if (!cardData) {
+                console.error('未找到项目数据:', index);
+                return;
+            }
             
-            // 获取完整项目数据
-            const fullData = [{"name": "Tripadvisor", "status": "scanning", "progress": 63, "targets": [{"name": "www.tripadvisor.com", "tools": [{"name": "Strix", "status": "scanning", "progress": 50, "scanned": 2100, "found": 5, "endpoints": ["/api/", "/hotels", "/flights", "/reviews", "/search"]}, {"name": "Nikto", "status": "scanning", "progress": 40, "scanned": 45, "found": 2, "vulns": ["X-Frame-Options missing", "Server-Leaks-Information via X-Powered-By"]}, {"name": "Nmap", "status": "completed", "progress": 100, "scanned": 1000, "found": 5, "ports": [80, 443, 8080, 8443, 22]}]}], "last_updated": "2026-02-22T10:39:53.129319"}];
-            const fullProject = fullData.projects.find(proj => proj.name === p.name);
+            const fullProject = fullProjectsData.find(p => p.name === cardData.name);
+            if (!fullProject) {
+                console.error('未找到完整项目数据:', cardData.name);
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = cardData.name;
+            
+            const statusText = {"scanning": "扫描中", "done": "已完成", "waiting": "等待中", "completed": "已完成"}[cardData.status] || "未知";
             
             let modalHtml = `
                 <div class="modal-progress">
                     <div class="row">
                         <span class="label">状态</span>
-                        <span class="status-badge ${p.statusCls}">${p.statusText}</span>
+                        <span class="status-badge ${cardData.status}">${statusText}</span>
                     </div>
                     <div class="row">
                         <span class="label">进度</span>
-                        <span class="value" style="color:#3fb950">${p.progress}%</span>
+                        <span class="value" style="color:#3fb950">${cardData.progress}%</span>
                     </div>
-                    <div class="bar"><div class="fill" style="width:${p.progress}%"></div></div>
+                    <div class="bar"><div class="fill" style="width:${cardData.progress}%"></div></div>
                 </div>
             `;
             
-            if (fullProject && fullProject.targets) {
+            if (fullProject.targets && fullProject.targets.length > 0) {
                 modalHtml += '<div class="sub-targets"><h3>扫描目标</h3>';
                 
                 fullProject.targets.forEach(t => {
                     modalHtml += `<div class="sub-target">
                         <div class="sub-header">
                             <span class="sub-url">📍 ${t.name}</span>
-                            <span class="sub-tools-count">${t.tools.length} 个工具</span>
+                            <span class="sub-tools-count">${t.tools ? t.tools.length : 0} 个工具</span>
                         </div>
                         <div class="tools-list">`;
                     
-                    t.tools.forEach(tool => {
-                        let detail = '';
-                        if (tool.name === 'Strix') {
-                            const eps = tool.endpoints ? tool.endpoints.slice(0, 5).join(', ') : '无';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned} URL</span></div>
-                                <div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">${tool.found}</span></div>
-                                <div class="detail-row"><span class="label">端点列表:</span><span class="value">${eps}</span></div>`;
-                        } else if (tool.name === 'Nikto') {
-                            const vulns = tool.vulns ? tool.vulns.join(', ') : '无';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned} 项</span></div>
-                                <div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">${tool.found}</span></div>
-                                <div class="detail-row"><span class="label">问题:</span><span class="value">${vulns}</span></div>`;
-                        } else {
-                            const ports = tool.ports ? tool.ports.join(', ') : '等待';
-                            detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned} IP</span></div>
-                                <div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">${tool.found}</span></div>
-                                <div class="detail-row"><span class="label">端口:</span><span class="value">${ports}</span></div>`;
-                        }
-                        
-                        const statusText = {'scanning': '扫描中', 'done': '已完成', 'waiting': '等待中'}[tool.status] || '未知';
-                        modalHtml += `<div class="tool-item">
-                            <div class="tool-header">
-                                <span class="tool-name tool-${tool.name.toLowerCase()}">${tool.name}</span>
-                                <span class="tool-status ${tool.status}">${statusText}</span>
-                            </div>
-                            <div class="tool-progress-row">
-                                <div class="tool-progress-bar"><div class="tool-progress-fill" style="width:${tool.progress}%"></div></div>
-                                <span class="tool-progress-num">${tool.progress}%</span>
-                            </div>
-                            <div class="tool-detail">${detail}</div>
-                        </div>`;
-                    });
+                    if (t.tools) {
+                        t.tools.forEach(tool => {
+                            let detail = '';
+                            if (tool.name === 'Strix') {
+                                const eps = tool.endpoints ? tool.endpoints.slice(0, 5).join(', ') : '无';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned || 0} URL</span></div>
+                                    <div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">${tool.found || 0}</span></div>
+                                    <div class="detail-row"><span class="label">端点列表:</span><span class="value">${eps}</span></div>`;
+                            } else if (tool.name === 'Nikto') {
+                                const vulns = tool.vulns ? tool.vulns.join(', ') : '无';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned || 0} 项</span></div>
+                                    <div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">${tool.found || 0}</span></div>
+                                    <div class="detail-row"><span class="label">问题:</span><span class="value">${vulns}</span></div>`;
+                            } else if (tool.name === 'Nmap') {
+                                const ports = tool.ports ? tool.ports.join(', ') : '等待';
+                                detail = `<div class="detail-row"><span class="label">已扫描:</span><span class="value">${tool.scanned || 0} IP</span></div>
+                                    <div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">${tool.found || 0}</span></div>
+                                    <div class="detail-row"><span class="label">端口:</span><span class="value">${ports}</span></div>`;
+                            }
+                            
+                            const toolStatusText = {"scanning": "扫描中", "done": "已完成", "waiting": "等待中", "completed": "已完成"}[tool.status] || "未知";
+                            const toolStatusClass = tool.status;
+                            
+                            modalHtml += `<div class="tool-item">
+                                <div class="tool-header">
+                                    <span class="tool-name tool-${tool.name.toLowerCase()}">${tool.name}</span>
+                                    <span class="tool-status ${toolStatusClass}">${toolStatusText}</span>
+                                </div>
+                                <div class="tool-progress-row">
+                                    <div class="tool-progress-bar"><div class="tool-progress-fill" style="width:${tool.progress || 0}%"></div></div>
+                                    <span class="tool-progress-num">${tool.progress || 0}%</span>
+                                </div>
+                                <div class="tool-detail">${detail}</div>
+                            </div>`;
+                        });
+                    }
                     
                     modalHtml += '</div></div>';
                 });
@@ -341,13 +353,22 @@
             document.getElementById('modalOverlay').classList.add('show');
         }
         
-        function closeModal(e) {
-            if (e && e.target !== e.currentTarget) return;
+        function closeModal() {
             document.getElementById('modalOverlay').classList.remove('show');
         }
         
+        // 点击遮罩关闭
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // ESC键关闭
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeModal();
+            }
         });
         
         // 初始化
