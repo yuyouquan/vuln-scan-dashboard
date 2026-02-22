@@ -17,7 +17,7 @@
         .stat-value { font-size: 32px; font-weight: bold; }
         .stat-label { font-size: 12px; margin-top: 5px; color: #8b949e; }
         
-        .targets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; padding: 20px; }
+        .targets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 15px; padding: 20px; }
         
         .target-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; transition: all 0.3s; cursor: pointer; }
         .target-card:hover { border-color: #58a6ff; }
@@ -27,7 +27,7 @@
         
         .card-header { padding: 15px; background: #21262d; display: flex; justify-content: space-between; align-items: center; }
         .card-header .name { font-weight: bold; color: #58a6ff; font-size: 14px; }
-        .card-header .status { padding: 4px 10px; border-radius: 12px; font-size: 11px; }
+        .status { padding: 4px 10px; border-radius: 12px; font-size: 11px; }
         .status.scanning { background: #238636; color: #fff; }
         .status.done { background: #58a6ff; color: #fff; }
         .status.waiting { background: #f0883e; color: #000; }
@@ -39,23 +39,35 @@
         .progress-bar .fill { height: 100%; background: linear-gradient(90deg, #3fb950, #58a6ff); transition: width 0.3s; }
         
         .card-expand { padding: 10px 15px; background: #161b22; border-top: 1px solid #30363d; text-align: center; font-size: 11px; color: #8b949e; }
-        .expand-icon { opacity: 0.7; }
         
-        .sub-targets { display: none; padding: 10px 15px; background: #0d1117; border-top: 1px solid #30363d; }
+        .sub-targets { display: none; padding: 10px; background: #0d1117; border-top: 1px solid #30363d; max-height: 400px; overflow-y: auto; }
         .target-card.expanded .sub-targets { display: block; }
         .target-card.expanded .card-expand { display: none; }
         
-        .sub-target { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 12px; }
-        .sub-url { flex: 1; color: #c9d1d9; }
-        .tool { padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+        .sub-target { background: #161b22; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+        .sub-header { padding: 10px 12px; background: #21262d; display: flex; justify-content: space-between; align-items: center; }
+        .sub-url { color: #c9d1d9; font-size: 13px; }
+        .tool-count { color: #8b949e; font-size: 11px; }
+        
+        .tools-list { padding: 10px; }
+        
+        .tool-item { background: #0d1117; border-radius: 4px; margin-bottom: 8px; padding: 10px; }
+        .tool-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .tool-name { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .tool-strix { background: #238636; color: #fff; }
         .tool-nikto { background: #f0883e; color: #000; }
         .tool-nmap { background: #58a6ff; color: #fff; }
-        .status-scanning { background: #238636; color: #fff; }
-        .status-done { background: #58a6ff; color: #fff; }
-        .status-waiting { background: #f0883e; color: #000; }
-        .sub-progress { width: 80px; height: 4px; background: #30363d; border-radius: 2px; }
-        .sub-progress .fill { height: 100%; background: #3fb950; border-radius: 2px; }
+        .progress-num { margin-left: auto; color: #3fb950; font-weight: bold; font-size: 12px; }
+        
+        .tool-progress { height: 4px; background: #30363d; border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+        .tool-progress .fill { height: 100%; background: #3fb950; transition: width 0.3s; }
+        
+        .tool-detail { background: #161b22; border-radius: 4px; padding: 8px; font-size: 11px; }
+        .detail-row { display: flex; gap: 8px; margin-bottom: 4px; }
+        .detail-row:last-child { margin-bottom: 0; }
+        .detail-row .label { color: #8b949e; min-width: 70px; }
+        .detail-row .value { color: #c9d1d9; }
+        .detail-row .highlight { color: #f0883e; font-weight: bold; }
     </style>
     <script>
         function toggleCard(el) { el.classList.toggle('expanded'); }
@@ -64,244 +76,18 @@
 <body>
     <div class="header">
         <h1>🛡️ 漏洞扫描监控中心</h1>
-        <span class="time">2026-02-22 10:19:30</span>
+        <span class="time">2026-02-22 10:24:11</span>
     </div>
     
     <div class="stats-bar">
-        <div class="stat"><div class="stat-value">246</div><div class="stat-label">总进程</div></div>
-        <div class="stat"><div class="stat-value">246</div><div class="stat-label">Strix</div></div>
+        <div class="stat"><div class="stat-value">186</div><div class="stat-label">总进程</div></div>
+        <div class="stat"><div class="stat-value">186</div><div class="stat-label">Strix</div></div>
         <div class="stat"><div class="stat-value">0</div><div class="stat-label">Nikto</div></div>
         <div class="stat"><div class="stat-value">0</div><div class="stat-label">Nmap</div></div>
     </div>
     
     <div class="targets-grid">
-        
-        <div class="target-card scanning" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Under Armour Corporate</span>
-                <span class="status">扫描中</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">75%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:75%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.underarmour.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:80%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">api.underarmour.com</span>
-                <span class="tool tool-nikto">Nikto</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:60%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">connect.underarmour.com</span>
-                <span class="tool tool-nmap">Nmap</span>
-                <span class="status status-done">完成</span>
-                <div class="sub-progress"><div class="fill" style="width:100%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card scanning" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Tripadvisor</span>
-                <span class="status">扫描中</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">45%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:45%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.tripadvisor.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">api.tripadvisor.com</span>
-                <span class="tool tool-nikto">Nikto</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:40%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">m.tripadvisor.com</span>
-                <span class="tool tool-nmap">Nmap</span>
-                <span class="status status-waiting">等待</span>
-                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card scanning" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Zendesk</span>
-                <span class="status">扫描中</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">60%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:60%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.zendesk.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:70%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">api.zendesk.com</span>
-                <span class="tool tool-nikto">Nikto</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card scanning" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">The Fork</span>
-                <span class="status">扫描中</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">30%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:30%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.thefork.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:35%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">api.thefork.fr</span>
-                <span class="tool tool-nmap">Nmap</span>
-                <span class="status status-waiting">等待</span>
-                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card scanning" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Anytask</span>
-                <span class="status">扫描中</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">55%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:55%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">anytask.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:60%"></div></div>
-            </div>
-            <div class="sub-target">
-                <span class="sub-url">cdn.anytask.com</span>
-                <span class="tool tool-nikto">Nikto</span>
-                <span class="status status-scanning">扫描中</span>
-                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card waiting" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">UltraMobile</span>
-                <span class="status">等待</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">0%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.ultramobile.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-waiting">等待</span>
-                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card waiting" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Entain</span>
-                <span class="status">等待</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">0%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.entainglobal.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-waiting">等待</span>
-                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
-            </div></div>
-        </div>
-        <div class="target-card waiting" onclick="toggleCard(this)">
-            <div class="card-header">
-                <span class="name">Glean</span>
-                <span class="status">等待</span>
-            </div>
-            <div class="card-body">
-                <div class="progress-info">
-                    <span>进度</span>
-                    <span class="percent">0%</span>
-                </div>
-                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
-            </div>
-            <div class="card-expand">
-                <span class="expand-icon">▼ 点击展开子目标</span>
-            </div>
-            <div class="sub-targets">
-            <div class="sub-target">
-                <span class="sub-url">www.glean.com</span>
-                <span class="tool tool-strix">Strix</span>
-                <span class="status status-waiting">等待</span>
-                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
-            </div></div>
-        </div>
+        <div class="target-card scanning" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Under Armour Corporate</span><span class="status">扫描中</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">75%</span></div><div class="progress-bar"><div class="fill" style="width:75%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.underarmour.com</span><span class="tool-count">3 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">80%</span></div><div class="tool-progress"><div class="fill" style="width:80%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">1240</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">3</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/api/, /login, /products</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nikto">Nikto</span><span class="status status-scanning">扫描中</span><span class="progress-num">60%</span></div><div class="tool-progress"><div class="fill" style="width:60%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描:</span><span class="value">89 项</span></div><div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">1</span></div><div class="detail-row"><span class="label">问题列表:</span><span class="value">Apache negotation</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nmap">Nmap</span><span class="status status-done">完成</span><span class="progress-num">100%</span></div><div class="tool-progress"><div class="fill" style="width:100%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描IP:</span><span class="value">1000</span></div><div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">12</span></div><div class="detail-row"><span class="label">端口列表:</span><span class="value">80, 443, 8080</span></div></div></div></div></div><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 api.underarmour.com</span><span class="tool-count">2 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nikto">Nikto</span><span class="status status-scanning">扫描中</span><span class="progress-num">45%</span></div><div class="tool-progress"><div class="fill" style="width:45%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描:</span><span class="value">56 项</span></div><div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">问题列表:</span><span class="value">无</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nmap">Nmap</span><span class="status status-waiting">等待</span><span class="progress-num">0%</span></div><div class="tool-progress"><div class="fill" style="width:0%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描IP:</span><span class="value">0</span></div><div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">端口列表:</span><span class="value">等待扫描</span></div></div></div></div></div></div></div><div class="target-card scanning" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Tripadvisor</span><span class="status">扫描中</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">45%</span></div><div class="progress-bar"><div class="fill" style="width:45%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.tripadvisor.com</span><span class="tool-count">3 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">50%</span></div><div class="tool-progress"><div class="fill" style="width:50%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">2100</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">5</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/api/, /hotels, /flights</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nikto">Nikto</span><span class="status status-scanning">扫描中</span><span class="progress-num">40%</span></div><div class="tool-progress"><div class="fill" style="width:40%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描:</span><span class="value">45 项</span></div><div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">2</span></div><div class="detail-row"><span class="label">问题列表:</span><span class="value">X-Frame-Options missing, CORS</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nmap">Nmap</span><span class="status status-waiting">等待</span><span class="progress-num">0%</span></div><div class="tool-progress"><div class="fill" style="width:0%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描IP:</span><span class="value">0</span></div><div class="detail-row"><span class="label">开放端口:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">端口列表:</span><span class="value">等待扫描</span></div></div></div></div></div><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 api.tripadvisor.com</span><span class="tool-count">1 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">35%</span></div><div class="tool-progress"><div class="fill" style="width:35%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">890</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">1</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/locations</span></div></div></div></div></div></div></div><div class="target-card scanning" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Zendesk</span><span class="status">扫描中</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">60%</span></div><div class="progress-bar"><div class="fill" style="width:60%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.zendesk.com</span><span class="tool-count">2 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">70%</span></div><div class="tool-progress"><div class="fill" style="width:70%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">3500</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">8</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/api/, /hc/, /support</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nikto">Nikto</span><span class="status status-scanning">扫描中</span><span class="progress-num">50%</span></div><div class="tool-progress"><div class="fill" style="width:50%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描:</span><span class="value">120 项</span></div><div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">问题列表:</span><span class="value">无</span></div></div></div></div></div></div></div><div class="target-card scanning" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 The Fork</span><span class="status">扫描中</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">30%</span></div><div class="progress-bar"><div class="fill" style="width:30%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.thefork.com</span><span class="tool-count">1 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">35%</span></div><div class="tool-progress"><div class="fill" style="width:35%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">560</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">2</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/api/, /restaurant</span></div></div></div></div></div></div></div><div class="target-card scanning" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Anytask</span><span class="status">扫描中</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">55%</span></div><div class="progress-bar"><div class="fill" style="width:55%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 anytask.com</span><span class="tool-count">2 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-scanning">扫描中</span><span class="progress-num">60%</span></div><div class="tool-progress"><div class="fill" style="width:60%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">780</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">3</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">/api/, /upload</span></div></div></div><div class="tool-item"><div class="tool-header"><span class="tool-name tool-nikto">Nikto</span><span class="status status-scanning">扫描中</span><span class="progress-num">50%</span></div><div class="tool-progress"><div class="fill" style="width:50%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描:</span><span class="value">67 项</span></div><div class="detail-row"><span class="label">发现问题:</span><span class="value highlight">1</span></div><div class="detail-row"><span class="label">问题列表:</span><span class="value">Info disclosure</span></div></div></div></div></div></div></div><div class="target-card waiting" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 UltraMobile</span><span class="status">等待</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">0%</span></div><div class="progress-bar"><div class="fill" style="width:0%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.ultramobile.com</span><span class="tool-count">1 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-waiting">等待</span><span class="progress-num">0%</span></div><div class="tool-progress"><div class="fill" style="width:0%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">0</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">无</span></div></div></div></div></div></div></div><div class="target-card waiting" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Entain</span><span class="status">等待</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">0%</span></div><div class="progress-bar"><div class="fill" style="width:0%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.entainglobal.com</span><span class="tool-count">1 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-waiting">等待</span><span class="progress-num">0%</span></div><div class="tool-progress"><div class="fill" style="width:0%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">0</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">无</span></div></div></div></div></div></div></div><div class="target-card waiting" onclick="toggleCard(this)"><div class="card-header"><span class="name">🎯 Glean</span><span class="status">等待</span></div><div class="card-body"><div class="progress-info"><span>总进度</span><span class="percent">0%</span></div><div class="progress-bar"><div class="fill" style="width:0%"></div></div></div><div class="card-expand"><span class="expand-icon">▼ 点击查看扫描详情</span></div><div class="sub-targets"><div class="sub-target"><div class="sub-header"><span class="sub-url">📍 www.glean.com</span><span class="tool-count">1 个工具</span></div><div class="tools-list"><div class="tool-item"><div class="tool-header"><span class="tool-name tool-strix">Strix</span><span class="status status-waiting">等待</span><span class="progress-num">0%</span></div><div class="tool-progress"><div class="fill" style="width:0%"></div></div><div class="tool-detail"><div class="detail-row"><span class="label">已扫描URL:</span><span class="value">0</span></div><div class="detail-row"><span class="label">发现端点:</span><span class="value highlight">0</span></div><div class="detail-row"><span class="label">端点列表:</span><span class="value">无</span></div></div></div></div></div></div></div>
     </div>
 </body>
 </html>
