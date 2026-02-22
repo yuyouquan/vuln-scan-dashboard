@@ -6,437 +6,302 @@
     <title>🛡️ 漏洞扫描监控中心</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-            background: #0a0e17;
-            color: #e6edf3;
-            min-height: 100vh;
-        }
+        body { font-family: 'SF Mono', 'Monaco', monospace; background: #0a0e17; color: #e6edf3; min-height: 100vh; }
         
-        .header {
-            background: linear-gradient(180deg, #1a2332 0%, #0a0e17 100%);
-            padding: 20px 30px;
-            border-bottom: 1px solid #30363d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .header { background: linear-gradient(180deg, #1a2332 0%, #0a0e17 100%); padding: 20px 30px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { color: #58a6ff; font-size: 24px; }
         .header .time { color: #8b949e; }
         
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: #30363d;
-        }
-        .stat {
-            background: #161b22;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .stat:hover { background: #21262d; }
-        .stat.active { background: #238636; }
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #30363d; }
+        .stat { background: #161b22; padding: 20px; text-align: center; }
         .stat-value { font-size: 32px; font-weight: bold; }
-        .stat-label { font-size: 12px; margin-top: 5px; }
+        .stat-label { font-size: 12px; margin-top: 5px; color: #8b949e; }
         
-        .filter-bar {
-            padding: 15px 30px;
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 16px;
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #c9d1d9;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .filter-btn:hover, .filter-btn.active {
-            background: #238636;
-            border-color: #3fb950;
-        }
+        .targets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; padding: 20px; }
         
-        .targets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 15px;
-            padding: 20px;
-        }
-        
-        .target-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-        .target-card:hover {
-            border-color: #58a6ff;
-            transform: translateY(-2px);
-        }
+        .target-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; transition: all 0.3s; cursor: pointer; }
+        .target-card:hover { border-color: #58a6ff; }
         .target-card.scanning { border-left: 3px solid #3fb950; }
         .target-card.done { border-left: 3px solid #58a6ff; }
         .target-card.waiting { border-left: 3px solid #f0883e; }
-        .target-card.hidden { display: none; }
         
-        .card-header {
-            padding: 15px;
-            background: #21262d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .card-header { padding: 15px; background: #21262d; display: flex; justify-content: space-between; align-items: center; }
         .card-header .name { font-weight: bold; color: #58a6ff; font-size: 14px; }
-        .card-header .status {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        .status-scanning { background: #238636; color: #fff; }
-        .status-done { background: #1f6feb; color: #fff; }
-        .status-waiting { background: #9e6a03; color: #fff; }
+        .card-header .status { padding: 4px 10px; border-radius: 12px; font-size: 11px; }
+        .status.scanning { background: #238636; color: #fff; }
+        .status.done { background: #58a6ff; color: #fff; }
+        .status.waiting { background: #f0883e; color: #000; }
         
         .card-body { padding: 15px; }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #8b949e; }
+        .percent { color: #3fb950; font-weight: bold; }
+        .progress-bar { height: 6px; background: #30363d; border-radius: 3px; overflow: hidden; }
+        .progress-bar .fill { height: 100%; background: linear-gradient(90deg, #3fb950, #58a6ff); transition: width 0.3s; }
         
-        .progress-section { margin-bottom: 12px; }
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #8b949e;
-            margin-bottom: 5px;
-        }
-        .progress-bar {
-            height: 6px;
-            background: #30363d;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s;
-        }
+        .card-expand { padding: 10px 15px; background: #161b22; border-top: 1px solid #30363d; text-align: center; font-size: 11px; color: #8b949e; }
+        .expand-icon { opacity: 0.7; }
         
-        .tools-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 12px;
-        }
-        .tool-tag {
-            padding: 3px 8px;
-            background: #30363d;
-            border-radius: 4px;
-            font-size: 10px;
-            color: #c9d1d9;
-        }
-        .tool-tag.active { background: #238636; color: #fff; }
+        .sub-targets { display: none; padding: 10px 15px; background: #0d1117; border-top: 1px solid #30363d; }
+        .target-card.expanded .sub-targets { display: block; }
+        .target-card.expanded .card-expand { display: none; }
         
-        .details-section {
-            font-size: 11px;
-            color: #8b949e;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            border-bottom: 1px solid #21262d;
-        }
-        .detail-row:last-child { border: none; }
-        
-        .scanned-items {
-            margin-top: 10px;
-            padding: 8px;
-            background: #0d1117;
-            border-radius: 4px;
-            font-size: 10px;
-        }
-        .scanned-items .title { color: #58a6ff; margin-bottom: 5px; }
-        .scanned-items ul { list-style: none; color: #8b949e; }
-        .scanned-items li::before { content: "✓ "; color: #3fb950; }
-        
-        .pagination {
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            align-items: center;
-        }
-        .page-btn {
-            padding: 8px 12px;
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #c9d1d9;
-            cursor: pointer;
-        }
-        .page-btn:hover, .page-btn.active {
-            background: #238636;
-            border-color: #3fb950;
-        }
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .pagination .info { color: #8b949e; margin: 0 15px; }
+        .sub-target { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 12px; }
+        .sub-url { flex: 1; color: #c9d1d9; }
+        .tool { padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+        .tool-strix { background: #238636; color: #fff; }
+        .tool-nikto { background: #f0883e; color: #000; }
+        .tool-nmap { background: #58a6ff; color: #fff; }
+        .status-scanning { background: #238636; color: #fff; }
+        .status-done { background: #58a6ff; color: #fff; }
+        .status-waiting { background: #f0883e; color: #000; }
+        .sub-progress { width: 80px; height: 4px; background: #30363d; border-radius: 2px; }
+        .sub-progress .fill { height: 100%; background: #3fb950; border-radius: 2px; }
     </style>
+    <script>
+        function toggleCard(el) { el.classList.toggle('expanded'); }
+    </script>
 </head>
 <body>
     <div class="header">
         <h1>🛡️ 漏洞扫描监控中心</h1>
-        <div class="time">更新时间: <span id="updateTime"></span></div>
+        <span class="time">2026-02-22 10:19:30</span>
     </div>
     
     <div class="stats-bar">
-        <div class="stat active" onclick="filterBy('all')">
-            <div class="stat-value" id="totalCount">400</div>
-            <div class="stat-label">📋 全部目标</div>
-        </div>
-        <div class="stat" onclick="filterBy('scanning')">
-            <div class="stat-value" id="scanningCount">116</div>
-            <div class="stat-label">🔴 扫描中</div>
-        </div>
-        <div class="stat" onclick="filterBy('done')">
-            <div class="stat-value" id="doneCount">0</div>
-            <div class="stat-label">✅ 已完成</div>
-        </div>
-        <div class="stat" onclick="filterBy('waiting')">
-            <div class="stat-value" id="waitingCount">284</div>
-            <div class="stat-label">⏳ 等待中</div>
-        </div>
+        <div class="stat"><div class="stat-value">246</div><div class="stat-label">总进程</div></div>
+        <div class="stat"><div class="stat-value">246</div><div class="stat-label">Strix</div></div>
+        <div class="stat"><div class="stat-value">0</div><div class="stat-label">Nikto</div></div>
+        <div class="stat"><div class="stat-value">0</div><div class="stat-label">Nmap</div></div>
     </div>
     
-    <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterBy('all')">全部</button>
-        <button class="filter-btn" onclick="filterBy('scanning')">扫描中</button>
-        <button class="filter-btn" onclick="filterBy('done')">已完成</button>
-        <button class="filter-btn" onclick="filterBy('waiting')">等待中</button>
+    <div class="targets-grid">
+        
+        <div class="target-card scanning" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Under Armour Corporate</span>
+                <span class="status">扫描中</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">75%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:75%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.underarmour.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:80%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">api.underarmour.com</span>
+                <span class="tool tool-nikto">Nikto</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:60%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">connect.underarmour.com</span>
+                <span class="tool tool-nmap">Nmap</span>
+                <span class="status status-done">完成</span>
+                <div class="sub-progress"><div class="fill" style="width:100%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card scanning" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Tripadvisor</span>
+                <span class="status">扫描中</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">45%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:45%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.tripadvisor.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">api.tripadvisor.com</span>
+                <span class="tool tool-nikto">Nikto</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:40%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">m.tripadvisor.com</span>
+                <span class="tool tool-nmap">Nmap</span>
+                <span class="status status-waiting">等待</span>
+                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card scanning" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Zendesk</span>
+                <span class="status">扫描中</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">60%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:60%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.zendesk.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:70%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">api.zendesk.com</span>
+                <span class="tool tool-nikto">Nikto</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card scanning" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">The Fork</span>
+                <span class="status">扫描中</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">30%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:30%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.thefork.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:35%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">api.thefork.fr</span>
+                <span class="tool tool-nmap">Nmap</span>
+                <span class="status status-waiting">等待</span>
+                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card scanning" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Anytask</span>
+                <span class="status">扫描中</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">55%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:55%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">anytask.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:60%"></div></div>
+            </div>
+            <div class="sub-target">
+                <span class="sub-url">cdn.anytask.com</span>
+                <span class="tool tool-nikto">Nikto</span>
+                <span class="status status-scanning">扫描中</span>
+                <div class="sub-progress"><div class="fill" style="width:50%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card waiting" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">UltraMobile</span>
+                <span class="status">等待</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.ultramobile.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-waiting">等待</span>
+                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card waiting" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Entain</span>
+                <span class="status">等待</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.entainglobal.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-waiting">等待</span>
+                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
+            </div></div>
+        </div>
+        <div class="target-card waiting" onclick="toggleCard(this)">
+            <div class="card-header">
+                <span class="name">Glean</span>
+                <span class="status">等待</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-info">
+                    <span>进度</span>
+                    <span class="percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
+            </div>
+            <div class="card-expand">
+                <span class="expand-icon">▼ 点击展开子目标</span>
+            </div>
+            <div class="sub-targets">
+            <div class="sub-target">
+                <span class="sub-url">www.glean.com</span>
+                <span class="tool tool-strix">Strix</span>
+                <span class="status status-waiting">等待</span>
+                <div class="sub-progress"><div class="fill" style="width:0%"></div></div>
+            </div></div>
+        </div>
     </div>
-    
-    <div class="targets-grid" id="targetsGrid">
-        <!-- 目标卡片将通过JavaScript生成 -->
-    </div>
-    
-    <div class="pagination" id="pagination">
-        <!-- 分页将通过JavaScript生成 -->
-    </div>
-    
-    <script>
-        // 模拟扫描数据
-        let targets = [];
-        
-        // 初始化目标数据
-        function initTargets() {
-            const targetNames = [
-                'pinterest.com', 'instagram.com', 'aurory.net', 'slack.com', 'nvidia.com',
-                'salesforce.com', 'intel.com', 'snapchat.com', 'ibm.com', 'adidas.com',
-                'oracle.com', 'nike.com', 'disney.com', 'salesforce.com', 'amd.com',
-                'cisco.com', 'samsung.com', 'whatsapp.com', 'tui.com', 'nvidia.com',
-                'facebook.com', 'instagram.com', 'uber.com', 'airbnb.com', 'reddit.com',
-                'paypal.com', 'alipay.com', 'wechat.com', 'tencent.com', 'bytedance.com',
-                'binance.com', 'coinbase.com', 'snapchat.com', 'pinterest.com', 'salesforce.com',
-                'amazon.com', 'google.com', 'microsoft.com', 'apple.com', 'facebook.com',
-                'twitter.com', 'tiktok.com', 'spotify.com', 'netflix.com', 'linkedin.com',
-                'ebay.com', 'shopify.com', 'stripe.com', 'dropbox.com', 'zoom.us'
-            ];
-            
-            targets = [];
-            for (let i = 0; i < 400; i++) {
-                const name = targetNames[i % targetNames.length];
-                let status, progress, tools, scannedItems;
-                
-                if (i < 116) {
-                    status = 'scanning';
-                    progress = Math.floor(Math.random() * 80) + 20;
-                    tools = ['Strix', 'Nmap', 'Nikto'];
-                    scannedItems = ['端口扫描', 'SSL检测', 'HTTP headers', '子域名枚举'];
-                } else if (i < 120) {
-                    status = 'done';
-                    progress = 100;
-                    tools = ['Strix', 'Nmap', 'Nikto', 'SQLMap'];
-                    scannedItems = ['端口扫描', 'SSL检测', 'Web漏洞', 'SQL注入', 'XSS', 'CSRF'];
-                } else {
-                    status = 'waiting';
-                    progress = 0;
-                    tools = ['Strix'];
-                    scannedItems = [];
-                }
-                
-                targets.push({
-                    id: i,
-                    name: i < 116 ? `www.${name}` : `target-${i}.com`,
-                    status: status,
-                    progress: progress,
-                    tools: tools,
-                    scannedItems: scannedItems,
-                    startTime: i < 116 ? '12:22:' + String(i).padStart(2, '0') : '-',
-                    duration: i < 116 ? Math.floor(Math.random() * 5) + '分' : '-'
-                });
-            }
-        }
-        
-        // 当前筛选和分页状态
-        let currentFilter = 'all';
-        let currentPage = 1;
-        const itemsPerPage = 12;
-        
-        // 渲染目标卡片
-        function renderTargets() {
-            const grid = document.getElementById('targetsGrid');
-            grid.innerHTML = '';
-            
-            // 筛选
-            let filtered = targets;
-            if (currentFilter !== 'all') {
-                filtered = targets.filter(t => t.status === currentFilter);
-            }
-            
-            // 分页
-            const totalPages = Math.ceil(filtered.length / itemsPerPage);
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageTargets = filtered.slice(start, end);
-            
-            // 更新统计
-            document.getElementById('totalCount').textContent = targets.length;
-            document.getElementById('scanningCount').textContent = targets.filter(t => t.status === 'scanning').length;
-            document.getElementById('doneCount').textContent = targets.filter(t => t.status === 'done').length;
-            document.getElementById('waitingCount').textContent = targets.filter(t => t.status === 'waiting').length;
-            
-            // 渲染卡片
-            pageTargets.forEach(target => {
-                const card = document.createElement('div');
-                card.className = `target-card ${target.status}`;
-                
-                const toolsHtml = target.tools.map(t => 
-                    `<span class="tool-tag ${target.status === 'scanning' ? 'active' : ''}">${t}</span>`
-                ).join('');
-                
-                const scannedHtml = target.scannedItems.length > 0 
-                    ? `<div class="scanned-items">
-                        <div class="title">✓ 已扫描项目</div>
-                        <ul>${target.scannedItems.map(item => `<li>${item}</li>`).join('')}</ul>
-                       </div>`
-                    : `<div class="scanned-items">
-                        <div class="title">📋 计划扫描</div>
-                        <ul><li>等待分配</li></ul>
-                       </div>`;
-                
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="name">${target.status === 'scanning' ? '📡' : target.status === 'done' ? '✅' : '⏳'} ${target.name}</span>
-                        <span class="status status-${target.status}">${target.status === 'scanning' ? '扫描中' : target.status === 'done' ? '已完成' : '等待中'}</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="progress-section">
-                            <div class="progress-label">
-                                <span>扫描进度</span>
-                                <span>${target.progress}%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${target.progress}%"></div>
-                            </div>
-                        </div>
-                        <div class="tools-section">${toolsHtml}</div>
-                        <div class="details-section">
-                            <div class="detail-row">
-                                <span>开始时间</span>
-                                <span>${target.startTime}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>运行时长</span>
-                                <span>${target.duration}</span>
-                            </div>
-                        </div>
-                        ${scannedHtml}
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            });
-            
-            // 渲染分页
-            renderPagination(totalPages);
-        }
-        
-        // 渲染分页
-        function renderPagination(totalPages) {
-            const pagination = document.getElementById('pagination');
-            
-            let html = `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>◀</button>`;
-            
-            for (let i = 1; i <= Math.min(totalPages, 10); i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            
-            if (totalPages > 10) {
-                html += `<span class="info">... ${totalPages}页</span>`;
-            }
-            
-            html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>▶</button>`;
-            html += `<span class="info">共 ${totalPages} 页 / ${targets.length} 个目标</span>`;
-            
-            pagination.innerHTML = html;
-        }
-        
-        // 筛选
-        function filterBy(filter) {
-            currentFilter = filter;
-            currentPage = 1;
-            
-            // 更新按钮状态
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // 更新统计高亮
-            document.querySelectorAll('.stat').forEach(stat => {
-                stat.classList.remove('active');
-            });
-            document.querySelector(`.stat[onclick="filterBy('${filter}')"]`).classList.add('active');
-            
-            renderTargets();
-        }
-        
-        // 跳转到指定页
-        function goToPage(page) {
-            currentPage = page;
-            renderTargets();
-            window.scrollTo(0, 0);
-        }
-        
-        // 初始化
-        initTargets();
-        renderTargets();
-        
-        // 更新时间
-        document.getElementById('updateTime').textContent = new Date().toLocaleString();
-        
-        // 每10秒刷新数据
-        setInterval(() => {
-            // 随机更新进度
-            targets.forEach(t => {
-                if (t.status === 'scanning' && t.progress < 100) {
-                    t.progress = Math.min(100, t.progress + Math.floor(Math.random() * 5));
-                    if (t.progress >= 100) {
-                        t.status = 'done';
-                    }
-                }
-            });
-            renderTargets();
-            document.getElementById('updateTime').textContent = new Date().toLocaleString();
-        }, 10000);
-    </script>
 </body>
 </html>
